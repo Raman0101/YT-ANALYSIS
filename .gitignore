@@ -1,0 +1,56 @@
+# Node modules and package managers
+node_modules/
+**/node_modules/
+package-lock.json
+npm-debug.log*
+yarn.lock
+yarn-error.log*
+pnpm-lock.yaml
+
+# Build outputs
+/dist/
+**/dist/
+/build/
+**/build/
+/.vite/
+**/.vite/
+
+# Logs & coverage
+logs/
+*.log
+*.log.*
+coverage/
+.nyc_output/
+
+# Env files (never commit secrets)
+.env
+**/.env
+.env.*
+**/.env.*
+
+# Editor/OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+*.iml
+
+# Tests & snapshots
+/junit.xml
+**/junit.xml
+**/__snapshots__/
+
+# Docker
+**/.docker/
+
+# Cypress
+frontend/cypress/videos/
+frontend/cypress/screenshots/
+
+# Misc
+*.local
+*.cache
+**/.cache/
+
