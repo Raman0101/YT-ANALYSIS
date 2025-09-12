@@ -1,17 +1,17 @@
-# Stage 1: Dependencies
+# Stage 1: Dependencies (production only)
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* .npmrc* ./
 RUN npm install --omit=dev
 
-# Stage 2: Build
+# Stage 2: Build (needs devDependencies)
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm install --omit=dev
+RUN npm install   # install all deps including dev
 COPY tsconfig.json ./ 
 COPY src ./src
-RUN npm run build   # should generate dist/
+RUN npm run build
 
 # Stage 3: Production
 FROM node:20-alpine
