@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import analyzeRouter from './routes/analyze';
+import analyzeRouter from './routes/analyze.js';
 
 const app = express();
 
