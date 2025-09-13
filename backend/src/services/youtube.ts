@@ -40,12 +40,10 @@ const API_ORIGIN = 'https://www.googleapis.com';
 const API_KEY = process.env.YT_API_KEY || '';
 
 if (!API_KEY) {
-  // Allow startup; tests may inject mocks. Real runtime should set the key.
   console.warn('Warning: YT_API_KEY is not set. API calls will fail.');
 }
 
 function buildUrl(resource: string, params: Record<string, string>) {
-  // Always target /youtube/v3/<resource>
   const u = new URL(`/youtube/v3/${resource}`, API_ORIGIN);
   for (const [k, v] of Object.entries(params)) {
     u.searchParams.set(k, v);
@@ -65,31 +63,26 @@ async function ytGet<T>(path: string, params: Record<string, string>): Promise<T
 }
 
 async function resolveChannelId(channelName: string): Promise<string> {
-  // Try forUsername (legacy /user/)
   try {
     const byUsername = await ytGet<{ items: Array<YouTubeChannel> }>('channels', {
       part: 'id',
       forUsername: channelName,
       maxResults: '1',
     });
-    if (byUsername.items && byUsername.items.length > 0) {
-      return byUsername.items[0].id;
-    }
+    if (byUsername.items && byUsername.items.length > 0) return byUsername.items[0].id;
   } catch (e) {
-    // Ignore and fallback to search
+    // fallback to search
   }
 
-  // Fallback: search by query (type=channel)
   const search = await ytGet<{ items: Array<{ id?: { channelId?: string } }> }>('search', {
     part: 'id',
     q: channelName,
     type: 'channel',
     maxResults: '1',
   });
+
   const channelId = search.items?.[0]?.id?.channelId;
-  if (!channelId) {
-    throw new AppError('CHANNEL_NOT_FOUND', 'Channel not found');
-  }
+  if (!channelId) throw new AppError('CHANNEL_NOT_FOUND', 'Channel not found');
   return channelId;
 }
 
@@ -108,15 +101,14 @@ async function listAllUploadVideoIds(uploadsPlaylistId: string, limit: number = 
   let pageToken: string | undefined = undefined;
   const ids: string[] = [];
   do {
-    const resp = await ytGet<{ items: Array<{ contentDetails?: { videoId?: string } }>; nextPageToken?: string }>(
-      'playlistItems',
-      {
+    const resp: { items: Array<{ contentDetails?: { videoId?: string } }>; nextPageToken?: string } =
+      await ytGet('playlistItems', {
         part: 'contentDetails',
         playlistId: uploadsPlaylistId,
         maxResults: '50',
         ...(pageToken ? { pageToken } : {}),
-      }
-    );
+      });
+
     for (const it of resp.items || []) {
       const vid = it.contentDetails?.videoId;
       if (vid) ids.push(vid);
@@ -124,15 +116,17 @@ async function listAllUploadVideoIds(uploadsPlaylistId: string, limit: number = 
     }
     pageToken = resp.nextPageToken;
   } while (pageToken && ids.length < limit);
+
   return ids;
 }
 
 async function getVideosDetails(videoIds: string[]): Promise<YouTubeVideo[]> {
   const chunks: string[][] = [];
   for (let i = 0; i < videoIds.length; i += 50) chunks.push(videoIds.slice(i, i + 50));
+
   const results: YouTubeVideo[] = [];
   for (const chunk of chunks) {
-    const resp = await ytGet<{ items: YouTubeVideo[] }>('videos', {
+    const resp: { items: YouTubeVideo[] } = await ytGet('videos', {
       part: 'snippet,statistics',
       id: chunk.join(','),
       maxResults: '50',
@@ -169,9 +163,7 @@ export async function analyzeChannel(channelName: string) {
 
   const uploadsId = channel.contentDetails?.relatedPlaylists?.uploads;
   const errors: string[] = [];
-  if (!uploadsId) {
-    errors.push('Uploads playlist not found');
-  }
+  if (!uploadsId) errors.push('Uploads playlist not found');
 
   const videoIds = uploadsId ? await listAllUploadVideoIds(uploadsId, 1000) : [];
   const videos = videoIds.length > 0 ? await getVideosDetails(videoIds) : [];
@@ -193,7 +185,10 @@ export async function analyzeChannel(channelName: string) {
   const now = Date.now();
   const topVideosByEngagement = [...videosNormalized]
     .map((v) => {
-      const ageDays = Math.max(1, Math.floor((now - new Date(v.publishedAt).getTime()) / (1000 * 60 * 60 * 24)));
+      const ageDays = Math.max(
+        1,
+        Math.floor((now - new Date(v.publishedAt).getTime()) / (1000 * 60 * 60 * 24))
+      );
       const engagement = (v.viewCount + v.likeCount + v.commentCount) / ageDays;
       return { ...v, engagement };
     })
@@ -219,13 +214,12 @@ export async function analyzeChannel(channelName: string) {
       country: channel.snippet.country,
     },
     statistics,
-    recentSummary: { last30daysViews: null, last30daysSubscribers: null }, // Best-effort placeholder
+    recentSummary: { last30daysViews: null, last30daysSubscribers: null },
     topVideos,
     topVideosByEngagement,
     errors,
     meta: {
       fetchedAt: new Date().toISOString(),
-      // Rough quota estimate: channels.list(2) ~2, playlistItems pages ~1/page, videos.list chunks ~1/chunk
       quotaUsedEstimate: 2 + Math.ceil(videoIds.length / 50) + Math.ceil(videoIds.length / 50),
     },
   };
@@ -236,5 +230,3 @@ export async function analyzeChannel(channelName: string) {
 
 // Export internals for testing
 export const __test__ = { resolveChannelId, getChannelDetails, listAllUploadVideoIds, getVideosDetails };
-
-

@@ -9,7 +9,10 @@ router.get('/analyze', async (req, res) => {
   const channelName = String(req.query.channelName || '').trim();
   const validation = validateChannelName(channelName);
   if (!validation.valid) {
-    return res.status(400).json(createErrorResponse(400, [validation.message]));
+    return res.status(400).json(
+      createErrorResponse(400, [validation.message ?? "Unknown validation error"])
+    );
+
   }
 
   try {
