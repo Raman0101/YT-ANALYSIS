@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { validateChannelName } from '../utils/validators.js';
-import { createErrorResponse } from '../utils/error';
-import { analyzeChannel } from '../services/youtube';
+import { createErrorResponse } from '../utils/error.js';
+import { analyzeChannel } from '../services/youtube.js';
 
 const router = Router();
 

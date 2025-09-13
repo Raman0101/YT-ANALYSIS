@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
-import { AppError } from '../utils/error';
-import { getCached, setCached, makeKey } from './cache';
+import { AppError } from '../utils/error.js';
+import { getCached, setCached, makeKey } from './cache.js';
 
 type YouTubeChannel = {
   id: string;
