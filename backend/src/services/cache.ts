@@ -5,7 +5,7 @@ export type CacheKey = string;
 const ttlMs = Number(process.env.CACHE_TTL_MS || 600_000); // 10 minutes
 
 // In-memory LRU cache. In production you may replace with Redis using the same interface.
-const cache = new LRUCache<CacheKey, unknown>({
+const cache = new LRUCache<CacheKey, any>({
   max: 500,
   ttl: ttlMs,
 });
