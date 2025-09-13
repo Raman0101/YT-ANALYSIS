@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { validateChannelName } from '../utils/validators';
+import { validateChannelName } from '../utils/validators.js';
 import { createErrorResponse } from '../utils/error';
 import { analyzeChannel } from '../services/youtube';
 
