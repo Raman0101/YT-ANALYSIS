@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-const apiBase = process.env.VITE_API_BASE || 'http://localhost:3000';
+const apiBase = 'https://yt-analysis-yr5t.onrender.com';
 
 export default defineConfig({
   plugins: [react()],
